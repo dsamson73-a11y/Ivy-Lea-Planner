@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ivy Lee Method</title>
+
+<!-- PWA / iOS home screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ivy Lee">
+<meta name="theme-color" content="#1a1612">
+
+<!-- Inline SVG favicon (no extra file needed) -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231a1612'/><text y='.9em' font-size='80' x='10'>📋</text></svg>">
+
+<!-- Apple touch icon: a simple generated SVG as data URI -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%231a1612'/><text x='90' y='115' font-size='90' text-anchor='middle'>📋</text></svg>">
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --ink: #1a1612;
+    --paper: #f5f0e8;
+    --cream: #ede8dc;
+    --accent: #8b3a2a;
+    --gold: #c4973a;
+    --muted: #7a7068;
+    --rule: #d4cfc4;
+    --done-bg: #eae6dc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    /* Safe area for iPhone notch/home bar */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  body {
+    background: var(--cream);
+    font-family: 'DM Mono', monospace;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 24px 16px 40px;
+    background-image:
+      radial-gradient(ellipse at 10% 0%, rgba(196,151,58,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 90% 100%, rgba(139,58,42,0.06) 0%, transparent 60%);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    box-shadow: 0 2px 40px rgba(0,0,0,0.10), 4px 4px 0 rgba(196,151,58,0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page::before {
+    content: '';
+    position: absolute;
+    left: 56px;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: rgba(139,58,42,0.25);
+    z-index: 0;
+  }
+
+  .ruled-area {
+    background-image: repeating-linear-gradient(
+      to bottom, transparent, transparent 55px,
+      var(--rule) 55px, var(--rule) 56px
+    );
+  }
+
+  /* ── INSTALL BANNER ── */
+  .install-banner {
+    display: none;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 16px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .install-banner.visible { display: flex; }
+  .install-banner a { color: var(--gold); text-decoration: none; font-weight: 500; }
+  .install-banner button {
+    background: none; border: none; color: var(--muted);
+    font-size: 16px; cursor: pointer; padding: 0 4px;
+  }
+
+  /* ── OFFLINE BADGE ── */
+  .offline-badge {
+    display: none;
+    position: fixed;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper);
+    font-size: 10px; letter-spacing: 0.1em;
+    padding: 6px 14px;
+    z-index: 100;
+  }
+  .offline-badge.visible { display: block; }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 28px 40px 20px 72px;
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+  }
+
+  .header-meta {
+    font-size: 9px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
+  }
+
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 700; line-height: 1.1; color: var(--ink);
+  }
+
+  .header-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic; font-size: 12px; color: var(--muted); margin-top: 3px;
+  }
+
+  .date-line {
+    margin-top: 14px; display: flex; align-items: baseline; gap: 12px;
+  }
+
+  .date-label {
+    font-size: 9px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  .date-input {
+    background: none; border: none;
+    border-bottom: 1px solid var(--ink);
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; color: var(--ink);
+    padding: 2px 4px; width: 220px; outline: none;
+    -webkit-appearance: none;
+  }
+  .date-input:focus { border-bottom-color: var(--accent); }
+
+  .rule-badge {
+    position: absolute; right: 32px; top: 28px;
+    width: 46px; height: 46px;
+    border: 1.5px solid var(--gold);
+    display: flex; align-items: center;
+    justify-content: center; flex-direction: column;
+  }
+  .rule-badge span:first-child {
+    font-size: 8px; letter-spacing: 0.1em;
+    color: var(--gold); text-transform: uppercase;
+  }
+  .rule-badge span:last-child {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; font-weight: 700; color: var(--gold); line-height: 1;
+  }
+
+  /* ── METHOD NOTE ── */
+  .method-note {
+    padding: 14px 40px 14px 72px;
+    background: rgba(139,58,42,0.04);
+    border-bottom: 1px solid var(--rule);
+    font-size: 11px; color: var(--muted); line-height: 1.7;
+  }
+  .method-note strong { color: var(--accent); font-weight: 500; }
+
+  /* ── TASKS ── */
+  .tasks-section { padding: 0 0 8px 0; }
+
+  .section-label {
+    padding: 14px 40px 10px 72px;
+    font-size: 9px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .task-row {
+    display: flex; align-items: flex-start;
+    padding: 0 24px 0 18px;
+    min-height: 56px;
+    border-bottom: 1px solid var(--rule);
+    position: relative; transition: background 0.2s;
+  }
+  .task-row:active { background: rgba(196,151,58,0.06); }
+  .task-row.completed { background: var(--done-bg); }
+
+  .task-number {
+    width: 38px; padding-top: 18px;
+    font-size: 10px; letter-spacing: 0.08em;
+    color: var(--accent); font-weight: 500; flex-shrink: 0;
+  }
+
+  .task-check {
+    width: 22px; height: 22px;
+    margin-top: 17px; margin-right: 14px;
+    border: 1.5px solid var(--muted);
+    flex-shrink: 0; cursor: pointer; position: relative;
+    background: none; appearance: none; -webkit-appearance: none;
+    /* Larger tap target */
+    padding: 4px;
+  }
+  .task-check:checked { background: var(--ink); border-color: var(--ink); }
+  .task-check:checked::after {
+    content: '';
+    position: absolute; left: 4px; top: 1px;
+    width: 6px; height: 11px;
+    border: 1.5px solid var(--paper);
+    border-left: none; border-top: none;
+    transform: rotate(45deg);
+  }
+
+  .task-content { flex: 1; padding: 15px 0; }
+
+  .task-text {
+    width: 100%; background: none; border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 15px; color: var(--ink);
+    outline: none; line-height: 1.5;
+    resize: none; height: 24px; overflow: hidden;
+    -webkit-appearance: none;
+  }
+  .task-row.completed .task-text {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--accent);
+  }
+  .task-text::placeholder { color: #bbb5a8; }
+
+  .priority-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    margin-top: 24px; flex-shrink: 0; margin-left: 10px;
+  }
+  .p1 { background: var(--accent); }
+  .p2 { background: var(--gold); }
+  .p3 { background: #a8c4a0; }
+  .p4 { background: #b0aaa2; }
+  .p5 { background: #c8c2b8; }
+  .p6 { background: #d8d4ce; }
+
+  .carry-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 24px 8px 72px;
+    font-size: 10px; color: var(--muted); letter-spacing: 0.06em;
+  }
+  .carry-arrow { color: var(--accent); font-size: 12px; }
+
+  /* ── SAVE INDICATOR ── */
+  .save-indicator {
+    text-align: right;
+    padding: 4px 24px 0;
+    font-size: 9px; letter-spacing: 0.1em;
+    color: var(--muted); opacity: 0;
+    transition: opacity 0.4s;
+    text-transform: uppercase;
+  }
+  .save-indicator.show { opacity: 1; }
+
+  /* ── REFLECTION ── */
+  .reflection {
+    border-top: 2px solid var(--ink);
+    padding: 20px 40px 20px 72px;
+  }
+
+  .reflection-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px; font-style: italic;
+    color: var(--muted); margin-bottom: 14px;
+  }
+
+  .reflection-field { margin-bottom: 18px; }
+
+  .reflection-label {
+    font-size: 9px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 5px;
+  }
+
+  .reflection-input {
+    width: 100%; background: none; border: none;
+    border-bottom: 1px solid var(--rule);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px; color: var(--ink);
+    outline: none; padding: 4px 0; line-height: 1.8;
+    resize: none; -webkit-appearance: none;
+  }
+  .reflection-input:focus { border-bottom-color: var(--accent); }
+
+  /* ── TOMORROW ── */
+  .tomorrow-section {
+    border-top: 1px solid var(--rule);
+    padding: 18px 40px 24px 72px;
+    background: rgba(196,151,58,0.04);
+  }
+
+  .tomorrow-title {
+    font-size: 9px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 12px;
+  }
+
+  .tomorrow-list { list-style: none; counter-reset: tmr; }
+
+  .tomorrow-item {
+    counter-increment: tmr;
+    display: flex; align-items: center;
+    gap: 10px; margin-bottom: 8px;
+  }
+  .tomorrow-item::before {
+    content: counter(tmr) ".";
+    font-size: 10px; color: var(--gold); width: 14px; flex-shrink: 0;
+  }
+
+  .tomorrow-input {
+    flex: 1; background: none; border: none;
+    border-bottom: 1px solid transparent;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px; color: var(--ink);
+    outline: none; padding: 4px 0;
+    transition: border-color 0.2s; -webkit-appearance: none;
+  }
+  .tomorrow-input:focus { border-bottom-color: var(--gold); }
+  .tomorrow-input::placeholder { color: #ccc7bc; }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 2px solid var(--ink);
+    padding: 12px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 10px;
+  }
+
+  .footer-motto {
+    font-family: 'Playfair Display', serif;
+    font-style: italic; font-size: 10px; color: var(--muted);
+  }
+
+  .footer-action { display: flex; gap: 8px; }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 8px 14px;
+    border: 1px solid var(--ink); background: none;
+    color: var(--ink); cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent); color: var(--paper);
+  }
+
+  .fade-in { animation: fadeIn 0.4s ease both; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 12px 8px 32px; }
+    .header { padding: 24px 56px 16px 60px; }
+    .header-title { font-size: 22px; }
+    .page::before { left: 44px; }
+    .task-number { width: 30px; }
+    .section-label, .carry-row, .method-note,
+    .reflection, .tomorrow-section { padding-left: 56px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- iOS install banner (shown when not in standalone mode) -->
+<div class="install-banner" id="installBanner">
+  <span>📲 <strong>Add to Home Screen</strong> — tap Share then "Add to Home Screen" in Safari</span>
+  <button onclick="document.getElementById('installBanner').classList.remove('visible')">✕</button>
+</div>
+
+<div class="offline-badge" id="offlineBadge">● OFFLINE — data saved locally</div>
+
+<div class="page fade-in">
+
+  <div class="header">
+    <div class="header-meta">Daily Priority Sheet</div>
+    <div class="header-title">Ivy Lee Method</div>
+    <div class="header-sub">Six tasks. In order. One at a time.</div>
+    <div class="date-line">
+      <span class="date-label">Date</span>
+      <input class="date-input" type="text" id="dateField" placeholder="Saturday, June 6, 2026" />
+    </div>
+    <div class="rule-badge"><span>Max</span><span>6</span></div>
+  </div>
+
+  <div class="method-note">
+    <strong>The Rule:</strong> Tonight, write your <strong>6 most important tasks</strong> for tomorrow — in order of priority. Tomorrow, work only on task 1 until it's complete. Then task 2. Whatever is unfinished carries forward.
+  </div>
+
+  <div class="tasks-section ruled-area">
+    <div class="section-label">Today's Six — ranked by priority</div>
+
+    <div class="task-row" id="row-1">
+      <div class="task-number">01.</div>
+      <input type="checkbox" class="task-check" id="check-1" onchange="toggleTask(1)">
+      <div class="task-content">
+        <textarea class="task-text" id="task-1" placeholder="Most important task of the day…" rows="1" oninput="autoResize(this); saveData()"></textarea>
+      </div>
+      <div class="priority-dot p1"></div>
+    </div>
+
+    <div class="task-row" id="row-2">
+      <div class="task-number">02.</div>
+      <input type="checkbox" class="task-check" id="check-2" onchange="toggleTask(2)">
+      <div class="task-content">
+        <textarea class="task-text" id="task-2" placeholder="Second priority…" rows="1" oninput="autoResize(this); saveData()"></textarea>
+      </div>
+      <div class="priority-dot p2"></div>
+    </div>
+
+    <div class="task-row" id="row-3">
+      <div class="task-number">03.</div>
+      <input type="checkbox" class="task-check" id="check-3" onchange="toggleTask(3)">
+      <div class="task-content">
+        <textarea class="task-text" id="task-3" placeholder="Third priority…" rows="1" oninput="autoResize(this); saveData()"></textarea>
+      </div>
+      <div class="priority-dot p3"></div>
+    </div>
+
+    <div class="task-row" id="row-4">
+      <div class="task-number">04.</div>
+      <input type="checkbox" class="task-check" id="check-4" onchange="toggleTask(4)">
+      <div class="task-content">
+        <textarea class="task-text" id="task-4" placeholder="Fourth priority…" rows="1" oninput="autoResize(this); saveData()"></textarea>
+      </div>
+      <div class="priority-dot p4"></div>
+    </div>
+
+    <div class="task-row" id="row-5">
+      <div class="task-number">05.</div>
+      <input type="checkbox" class="task-check" id="check-5" onchange="toggleTask(5)">
+      <div class="task-content">
+        <textarea class="task-text" id="task-5" placeholder="Fifth priority…" rows="1" oninput="autoResize(this); saveData()"></textarea>
+      </div>
+      <div class="priority-dot p5"></div>
+    </div>
+
+    <div class="task-row" id="row-6">
+      <div class="task-number">06.</div>
+      <input type="checkbox" class="task-check" id="check-6" onchange="toggleTask(6)">
+      <div class="task-content">
+        <textarea class="task-text" id="task-6" placeholder="Sixth priority…" rows="1" oninput="autoResize(this); saveData()"></textarea>
+      </div>
+      <div class="priority-dot p6"></div>
+    </div>
+
+    <div class="carry-row">
+      <span class="carry-arrow">→</span>
+      <span>Unfinished tasks carry forward to tomorrow's list — in order.</span>
+    </div>
+  </div>
+
+  <div class="save-indicator" id="saveIndicator">Saved</div>
+
+  <div class="reflection">
+    <div class="reflection-title">End-of-day reflection</div>
+
+    <div class="reflection-field">
+      <div class="reflection-label">What moved the needle today?</div>
+      <textarea class="reflection-input" id="ref-1" rows="2" placeholder="The one thing that mattered most…" oninput="autoResize(this); saveData()"></textarea>
+    </div>
+
+    <div class="reflection-field">
+      <div class="reflection-label">What blocked or distracted you?</div>
+      <textarea class="reflection-input" id="ref-2" rows="2" placeholder="Interruptions, context switches, unclear priorities…" oninput="autoResize(this); saveData()"></textarea>
+    </div>
+
+    <div class="reflection-field">
+      <div class="reflection-label">What would you do differently?</div>
+      <textarea class="reflection-input" id="ref-3" rows="2" placeholder="Sequence, timing, delegation…" oninput="autoResize(this); saveData()"></textarea>
+    </div>
+  </div>
+
+  <div class="tomorrow-section">
+    <div class="tomorrow-title">Tomorrow's Six — write tonight</div>
+    <ul class="tomorrow-list">
+      <li class="tomorrow-item"><input class="tomorrow-input" id="tmr-1" type="text" placeholder="Most critical task…" oninput="saveData()"></li>
+      <li class="tomorrow-item"><input class="tomorrow-input" id="tmr-2" type="text" placeholder="Second priority…" oninput="saveData()"></li>
+      <li class="tomorrow-item"><input class="tomorrow-input" id="tmr-3" type="text" placeholder="Third priority…" oninput="saveData()"></li>
+      <li class="tomorrow-item"><input class="tomorrow-input" id="tmr-4" type="text" placeholder="Fourth priority…" oninput="saveData()"></li>
+      <li class="tomorrow-item"><input class="tomorrow-input" id="tmr-5" type="text" placeholder="Fifth priority…" oninput="saveData()"></li>
+      <li class="tomorrow-item"><input class="tomorrow-input" id="tmr-6" type="text" placeholder="Sixth priority…" oninput="saveData()"></li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <div class="footer-motto">"Do not attempt more than six." — Ivy Lee, 1918</div>
+    <div class="footer-action">
+      <button class="btn" onclick="newDay()">New Day</button>
+      <button class="btn btn-primary" onclick="clearAll()">Clear</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── DATE ──
+  const dateField = document.getElementById('dateField');
+  const today = new Date();
+  const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const todayKey = today.toISOString().slice(0, 10); // e.g. "2026-06-06"
+
+  // ── STORAGE KEY ──
+  const STORE_KEY = 'ivylee_' + todayKey;
+
+  // ── AUTO-RESIZE ──
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  // ── TOGGLE TASK ──
+  function toggleTask(n) {
+    const row = document.getElementById('row-' + n);
+    const cb  = document.getElementById('check-' + n);
+    row.classList.toggle('completed', cb.checked);
+    saveData();
+  }
+
+  // ── SAVE ──
+  let saveTimer;
+  function saveData() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      const data = {
+        date: dateField.value,
+        tasks: [],
+        checks: [],
+        refs: [],
+        tmr: []
+      };
+      for (let i = 1; i <= 6; i++) {
+        data.tasks.push(document.getElementById('task-' + i).value);
+        data.checks.push(document.getElementById('check-' + i).checked);
+      }
+      for (let i = 1; i <= 3; i++) data.refs.push(document.getElementById('ref-' + i).value);
+      for (let i = 1; i <= 6; i++) data.tmr.push(document.getElementById('tmr-' + i).value);
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(data));
+        const ind = document.getElementById('saveIndicator');
+        ind.classList.add('show');
+        setTimeout(() => ind.classList.remove('show'), 1200);
+      } catch(e) { console.warn('Save failed', e); }
+    }, 400);
+  }
+
+  // ── LOAD ──
+  function loadData() {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) {
+      dateField.value = today.toLocaleDateString('en-US', dateOptions);
+      return;
+    }
+    try {
+      const data = JSON.parse(raw);
+      if (data.date) dateField.value = data.date;
+      data.tasks.forEach((v, i) => {
+        const el = document.getElementById('task-' + (i+1));
+        el.value = v; autoResize(el);
+      });
+      data.checks.forEach((v, i) => {
+        document.getElementById('check-' + (i+1)).checked = v;
+        document.getElementById('row-' + (i+1)).classList.toggle('completed', v);
+      });
+      data.refs.forEach((v, i) => {
+        const el = document.getElementById('ref-' + (i+1));
+        el.value = v; autoResize(el);
+      });
+      data.tmr.forEach((v, i) => {
+        document.getElementById('tmr-' + (i+1)).value = v;
+      });
+    } catch(e) { dateField.value = today.toLocaleDateString('en-US', dateOptions); }
+  }
+
+  // ── NEW DAY: promote tomorrow → today ──
+  function newDay() {
+    if (!confirm('Start a new day? Tomorrow\'s tasks will become today\'s tasks.')) return;
+    const tmrVals = [];
+    for (let i = 1; i <= 6; i++) tmrVals.push(document.getElementById('tmr-' + i).value);
+
+    // Clear everything
+    clearAll(true);
+
+    // Populate today tasks from tomorrow
+    tmrVals.forEach((v, i) => {
+      const el = document.getElementById('task-' + (i+1));
+      el.value = v; autoResize(el);
+    });
+    dateField.value = today.toLocaleDateString('en-US', dateOptions);
+    saveData();
+  }
+
+  // ── CLEAR ──
+  function clearAll(silent) {
+    if (!silent && !confirm('Clear all tasks and notes?')) return;
+    for (let i = 1; i <= 6; i++) {
+      const t = document.getElementById('task-' + i);
+      t.value = ''; autoResize(t);
+      document.getElementById('check-' + i).checked = false;
+      document.getElementById('row-' + i).classList.remove('completed');
+      document.getElementById('tmr-' + i).value = '';
+    }
+    for (let i = 1; i <= 3; i++) {
+      const r = document.getElementById('ref-' + i);
+      r.value = ''; autoResize(r);
+    }
+    dateField.value = today.toLocaleDateString('en-US', dateOptions);
+    if (!silent) saveData();
+  }
+
+  // ── OFFLINE DETECTION ──
+  function updateOnline() {
+    document.getElementById('offlineBadge').classList.toggle('visible', !navigator.onLine);
+  }
+  window.addEventListener('online',  updateOnline);
+  window.addEventListener('offline', updateOnline);
+  updateOnline();
+
+  // ── IOS INSTALL BANNER ──
+  // Show if Safari and NOT already in standalone mode
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  if (isIOS && !isStandalone) {
+    document.getElementById('installBanner').classList.add('visible');
+  }
+
+  // ── INIT ──
+  loadData();
+  dateField.addEventListener('change', saveData);
+
+  // ── SERVICE WORKER (inline via blob) ──
+  // Caches the page for full offline use
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE = 'ivylee-v1';
+      const ASSETS = [self.location.href];
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+        self.skipWaiting();
+      });
+      self.addEventListener('activate', e => {
+        e.waitUntil(caches.keys().then(keys =>
+          Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+        ));
+        self.clients.claim();
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(
+          caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match(e.request)))
+        );
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    const swURL = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swURL).catch(() => {});
+  }
+</script>
+
+</body>
+</html>
